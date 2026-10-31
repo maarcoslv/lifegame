@@ -292,7 +292,7 @@ const IC=id=>({c1:'🚗',c2:'🏎️',c3:'🚀',w1:'⌚',w2:'⌚',w3:'💎',h1:'
 const dA=a=>a!==undefined?` data-a="${a}"`:'';
 const A=(t,k,a,c=0,s='')=>`<button class="b ${s}" data-k="${k}"${dA(a)}${c>S.cash?' disabled':''}>${t}</button>`;
 const IB=(ic,l,k,a,c=0,cls='')=>`<button class="ib ${cls}" data-k="${k}"${dA(a)}${c>S.cash?' disabled':''}><span>${ic}</span>${l}</button>`;
-const TL=(ic,t,sb,k,a,off,c=0)=>`<button class="tile${off?' lock':''}" data-k="${k}"${dA(a)}${c>S.cash?' disabled':''}><span>${ic}</span><b>${t}</b><small>${sb}</small></button>`;
+const TL=(ic,t,sb,k,a,off,c=0)=>`<button class="tile${off==='cur'?' cur':off?' lock':''}" data-k="${k}"${dA(a)}${c>S.cash?' disabled':''}><span>${ic}</span><b>${t}</b><small>${sb}</small></button>`;
 const P=(t,b,c='')=>`<div class="cd ${c}">${t?`<h3>${t}</h3>`:''}${b}</div>`;
 const KP=(ic,l,v,sb,c='')=>`<div class="kp"><span>${ic}</span><div><small>${l}</small><b class="${c}">${v}</b>${sb?`<small>${sb}</small>`:''}</div></div>`;
 const bar=(ic,label,v,c)=>`<div class="mb"><span>${ic} ${label} <b>${Math.round(v)}</b></span><div><u style="width:${cl(v)}%;background:${c}"></u></div></div>`;
@@ -354,7 +354,7 @@ function nextStep(){
  if(cash<0)return['💶','Sal de los números rojos','Vende parte de la cartera o baja el nivel de vida antes de que actúen los acreedores.','inv'];
  if(a<18&&!S.st)return['🎓','Elige qué estudiar','Bachillerato o FP son gratuitos y abren mejores trabajos. También puedes empezar a trabajar.','car'];
  if(S.cos.length&&prof<0)return['🏢','Revisa tus empresas','Alguna pierde dinero. Despide empleados o sube la reputación con marketing.','emp'];
- if(S.job==null&&!S.cos.length&&S.paro<=0&&a>=18)return['💼','Busca trabajo','Ve a Carrera y solicita un puesto acorde a tu formación.','car'];
+ if(S.job==null&&!S.cos.length&&S.paro<=0&&!S.pen&&a>=18)return['💼','Busca trabajo','Ve a Carrera y solicita un puesto acorde a tu formación.','car'];
  if(S.ex>0&&cash+S.pf.dep<S.ex*3)return['🛟','Fondo de emergencia','Reúne 3-6 meses de gastos en efectivo o depósito antes de invertir.','inv'];
  if(S.job!=null&&S.rz==0&&S.exp>=12)return['💪','Pide un aumento','Llevas tiempo rindiendo: puedes intentar subir tu sueldo.','car'];
  if(S.cos.length<MAXCO&&cash>12000&&a>=18&&!S.st)return['🏢','Funda otra empresa','Tienes caja para diversificar en otro sector y sumar ingresos.','emp'];
@@ -435,7 +435,7 @@ function render0(){
  }
  if(tab=='car'){
   const cur=S.st&&ED.find(e=>e[0]==S.st.id);
-  h+=P('Formación',`<div class="stp">${LV.map((l,i)=>`<div class="${i<=S.edu?'on':''}"><i>${i<=S.edu?'✓':i}</i><small>${l.split(' ')[0]}</small></div>`).join('')}</div>`+(S.st?`<b>${cur[1]}</b> <small>${S.st.l} meses</small><div class="pb"><u style="width:${100-S.st.l/cur[2]*100}%"></u></div>${A('Abandonar','drop',undefined,0,'s')}`:`<div class="g2">${ED.filter(e=>e[0]=='gr'?S.edu==1:e[0]=='ma'?S.edu==2:S.edu==0).map(e=>TL('🎓',e[1],e[2]/12+' años · '+(e[3]?F(e[3]*S.inf)+'/mes':'gratis'),'study',e[0])).join('')||'<small>Máximo nivel alcanzado</small>'}</div>`));
+  h+=P('Formación',`<div class="stp">${LV.map((l,i)=>`<div class="${i<=S.edu?'on':''}"><i>${i<=S.edu?'✓':i}</i><small>${l.split(' ')[0]}</small></div>`).join('')}</div>`+(S.st?`<b>${cur[1]}</b> <small>${S.st.l} meses</small><div class="pb"><u style="width:${100-S.st.l/cur[2]*100}%"></u></div>${A('Abandonar','drop',undefined,0,'s')}`:`<div class="g2">${ED.filter(e=>e[0]=='gr'?S.edu==1:e[0]=='ma'?S.edu==2:S.edu==0).map(e=>TL('🎓',e[1],e[2]/12+(e[2]==12?' año · ':' años · ')+(e[3]?F(e[3]*S.inf)+'/mes':'gratis'),'study',e[0])).join('')||'<small>Máximo nivel alcanzado</small>'}</div>`));
   h+=S.job!=null?P('',`<div class="cp"><div class="av2">${JI[S.job]}</div><div><b>${JB[S.job][0]}</b><div class="big2">${F(netPay(S.sal))}</div><small>netos · ${F(S.sal)} brutos · nivel ${S.grade+1}</small></div></div><div class="mb"><span>Rendimiento <b>${Math.round(S.perf)}</b></span><div><u style="width:${S.perf}%;background:var(--sf)"></u></div></div><div class="ibs">${IB('💪','Aumento','raise')}${IB('🚪','Dejar','quit')}</div>`):P('Trabajo',S.cos.length?`<div class="cp"><div class="av2">🏢</div><div><b>Eres empresario</b><br><small>Diriges ${S.cos.length} ${S.cos.length>1?'empresas':'empresa'}. Gestiona empleados y beneficios en Empresas.</small></div></div><div class="ibs">${IB('🏢','Gestionar empresas','tab','emp')}</div>`:S.pen?`<div class="cp"><div class="av2">🕰️</div><div><b>Estás jubilado</b><br><small>Cobras ${F(S.pen)}/mes de pensión.</small></div></div>`:`<div class="g2">${TL('🍔',S.part?'Dejar parcial':'Parcial','unos 450 €/mes','part')}${JB.map((j,i)=>TL(JI[i],j[0],F(j[2]*S.inf)+(j[1]?' · '+LV[j[1]].split(' ')[0]:''),'apply',i,S.edu<j[1]||S.exp<j[3])).join('')}</div>`);
  }
  if(tab=='emp'){
@@ -453,8 +453,8 @@ function render0(){
   }else h+=P('',`<small>Has alcanzado el máximo de ${MAXCO} empresas. Vende una para poder fundar otra.</small>`);
  }
  if(tab=='hog'){
-  h+=P('Hogar',`<div class="g2">${S.home==-1?TL('🏡','Casa propia','Vives aquí','x'):H.map((o,i)=>TL(['👨‍👩‍👦','🛏️','🏘️','🏙️'][i],o[0].replace(' de tus padres',' padres'),o[1]?F(o[1]*S.inf)+'/mes':'Gratis',i==S.home?'x':'home',i,i==S.home)).join('')}</div>`)
-  +P('Tienda',`<div class="qr"><small>Cantidad</small><input id="qt" type="number" min="1" value="${QTY}" inputmode="numeric">${[1,5,10,17].map(q=>A(q,'qty',q,0,'mn s')).join('')}</div><div class="qr">${A(MODE=='mort'?'Casas: con hipoteca':'Casas: al contado','mode',undefined,0,'mn s')}</div><div class="g2">${SH.map(d=>{const pr=d[2]*S.inf*QTY,hs=d[0][0]=='h';return TL(IC(d[0]),d[1],F(pr)+(hs&&MODE=='mort'?' · entrada '+F(pr*.38):''),'buy',d[0],0,hs?pr*(MODE=='mort'?.38:1.08):pr)}).join('')}</div><small>Hipoteca: 30 % de entrada + 8 % de gastos, 25 años. Las cuotas no pueden superar el 40 % de tus ingresos. Los coches se deprecian; las casas y los relojes suelen aguantar mejor.</small>`)
+  h+=P('Hogar',`<div class="g2">${S.home==-1?TL('🏡','Casa propia','Vives aquí','x',undefined,'cur'):H.map((o,i)=>TL(['👨‍👩‍👦','🛏️','🏘️','🏙️'][i],o[0].replace(' de tus padres',' padres'),o[1]?F(o[1]*S.inf)+'/mes':'Gratis',i==S.home?'x':'home',i,i==S.home?'cur':0)).join('')}</div>`)
+  +P('Tienda',`<div class="qr"><small>Cantidad</small><input id="qt" type="number" min="1" value="${QTY}" inputmode="numeric">${[1,5,10,17].map(q=>A(q,'qty',q,0,'mn s')).join('')}</div><div class="qr">${A(MODE=='mort'?'Casas: con hipoteca':'Casas: al contado','mode',undefined,0,'mn s')}</div>${[['Coches','c'],['Relojes y joyas','w'],['Inmuebles','h']].map(([gt,gp])=>`<div class="grp">${gt}</div><div class="g2">${SH.filter(d=>d[0][0]==gp).map(d=>{const pr=d[2]*S.inf*QTY,hs=d[0][0]=='h';return TL(IC(d[0]),d[1],F(pr)+(hs&&MODE=='mort'?' · entrada '+F(pr*.38):''),'buy',d[0],0,hs?pr*(MODE=='mort'?.38:1.08):pr)}).join('')}</div>`).join('')}<small>Hipoteca: 30 % de entrada + 8 % de gastos, 25 años. Las cuotas no pueden superar el 40 % de tus ingresos. Los coches se deprecian; las casas y los relojes suelen aguantar mejor.</small>`)
   +(S.it.length?P('Tus bienes',`<div class="g2">${S.it.map((x,i)=>`<div class="cd as"><div class="ah"><span class="ai" style="background:#7aa2b833;color:#7aa2b8">${IC(x.id)}</span><div><b>${x.q} × ${sd(x.id)[1]}</b><small>${F(x.v)}</small></div></div>${x.d>0?`<small class="neg">Debes ${F(x.d)} · ${F(x.p)}/mes</small><br>`:''}<div class="mr2">${A('Vender 1','sell',i+',1',0,'mn s')}${x.q>1?A('Vender todo','sell',i+','+x.q,0,'mn s'):''}</div></div>`).join('')}</div>`):'');
  }
  Ap.innerHTML=h;
